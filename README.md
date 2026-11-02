@@ -49,7 +49,7 @@ search and rejects missing, extra, reordered, or incorrect results.
 ├── uv.lock
 ├── .gitignore
 ├── .env
-├── src/word_search_coordinate_solver/
+├── src/plugin/
 ├── tests/
 ├── ui/
 ├── product/

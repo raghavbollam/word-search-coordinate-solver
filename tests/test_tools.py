@@ -9,7 +9,7 @@ from contract import (
     WordSearchOutput,
     WriteSolutionsInput,
 )
-from word_search_coordinate_solver.tools import read_case, write_solutions
+from plugin.tools import read_case, write_solutions
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

@@ -7,7 +7,7 @@ spec: nanoagent.plugin/v0001
 
 runtime > nanoagent.plugin.v0001.RuntimeConfig:
   type: mcp_stdio
-  command: [uv, run, --frozen, python, -m, word_search_coordinate_solver]
+  command: [uv, run, --frozen, python, -m, plugin]
 
 permissions > nanoagent.plugin.v0001.PermissionsConfig:
   network > nanoagent.plugin.v0001.NetworkConfig:

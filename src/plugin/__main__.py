@@ -13,7 +13,7 @@ from mcp.server.stdio import stdio_server
 from slimconfig import build_output, output_schema, plain_output
 
 from contract import TOOLS, Tool
-from word_search_coordinate_solver import read_case, write_solutions
+from plugin import read_case, write_solutions
 
 server = Server("word-search-coordinate-solver")
 
