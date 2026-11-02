@@ -337,7 +337,7 @@ wheels = [
 ]
 
 [[package]]
-name = "nanoagent-gitignore-decision-explainer"
+name = "nanoagent-word-search-coordinate-solver"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

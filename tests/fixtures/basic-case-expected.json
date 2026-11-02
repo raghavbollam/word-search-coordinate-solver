@@ -1,46 +1,40 @@
 {
-    "decisions": [
+    "solutions": [
         {
-            "path": "app.log",
-            "status": "ignored",
-            "winning_rule": 1,
-            "winning_pattern": "*.log"
+            "word": "CAT",
+            "found": true,
+            "start_row": 1,
+            "start_column": 1,
+            "end_row": 1,
+            "end_column": 3,
+            "direction": "E"
         },
         {
-            "path": "important.log",
-            "status": "included",
-            "winning_rule": 3,
-            "winning_pattern": "!important.log"
+            "word": "DOG",
+            "found": true,
+            "start_row": 4,
+            "start_column": 4,
+            "end_row": 4,
+            "end_column": 6,
+            "direction": "E"
         },
         {
-            "path": "cache/session.json",
-            "status": "ignored",
-            "winning_rule": 2,
-            "winning_pattern": "cache/"
+            "word": "TAC",
+            "found": true,
+            "start_row": 1,
+            "start_column": 3,
+            "end_row": 1,
+            "end_column": 1,
+            "direction": "W"
         },
         {
-            "path": "cache/nested/data.txt",
-            "status": "ignored",
-            "winning_rule": 2,
-            "winning_pattern": "cache/"
-        },
-        {
-            "path": "build/output.log",
-            "status": "ignored",
-            "winning_rule": 4,
-            "winning_pattern": "build/output.log"
-        },
-        {
-            "path": "build/readme.txt",
-            "status": "included",
-            "winning_rule": null,
-            "winning_pattern": null
-        },
-        {
-            "path": "notes.txt",
-            "status": "included",
-            "winning_rule": null,
-            "winning_pattern": null
+            "word": "BEE",
+            "found": false,
+            "start_row": null,
+            "start_column": null,
+            "end_row": null,
+            "end_column": null,
+            "direction": null
         }
     ]
 }

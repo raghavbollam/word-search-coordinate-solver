@@ -1,36 +1,41 @@
-# Gitignore Decision Explainer
+# Word Search Coordinate Solver
 
-A `nanoagent.plugin/v0001` plugin that determines whether candidate
-repository-relative paths are ignored by supplied repository-root `.gitignore`
-contents and identifies the final matching rule.
+A `nanoagent.plugin/v0001` plugin for the COMP 480/580 verifiable-tasks
+milestone. It finds requested words in a supplied character grid and reports
+their canonical coordinates and direction, or an explicit not-found result.
 
 ## Tools
 
 | Tool | Does | Code |
 |---|---|---|
-| `read_case` | Reads the `.gitignore` contents and candidate paths for the task | `src/plugin/tools.py` |
-| `write_decisions` | Writes the final structured decisions to `decisions.json` in the workspace | `src/plugin/tools.py` |
+| `read_case` | Reads the grid and ordered target words for the task | `src/plugin/tools.py` |
+| `write_solutions` | Writes the final structured locations to `solutions.json` in the workspace | `src/plugin/tools.py` |
 
-### Tasks
+### Task
 
 | Task | Does | Runner |
 |---|---|---|
-| `explain-decisions` | Determines whether every candidate path is ignored or included | `agent`, with `read_case` and `write_decisions` |
+| `solve-word-search` | Finds every target word and reports its canonical location or not-found result | `agent`, with `read_case` and `write_solutions` |
 
-### Supported .gitignore subset
+## Solver rules
 
-- Exact file or path patterns, such as `notes.txt` and `build/output.log`
-- `*` wildcards, which may match `/` characters in a candidate path
-- Directory patterns ending in `/`, such as `cache/`; `cache/` matches both
-  the exact candidate `cache` and paths below it
-- `!` negation patterns, such as `!important.log`
-- Rules are processed from top to bottom; the last matching rule wins
-- Blank lines, lines beginning with `#`, and a lone `!` are ignored and do not
-  receive rule numbers
-- An empty `.gitignore` includes every candidate with null rule metadata
+The task input contains a non-empty rectangular `grid` of character strings
+and ordered, non-empty `target_words`. Matching is exact and case-sensitive.
+Each output `solution` contains the target `word`, a `found` flag, and:
 
-`**` recursive globs, nested `.gitignore` files, escaped `#` and `!`, and
-full Git directory traversal behavior are out of scope.
+- when found: 1-based `start_row`, `start_column`, `end_row`, `end_column`,
+  and a direction from the word's first letter to its final letter;
+- when absent: null coordinates and a null direction.
+
+The supported directions are `N`, `NE`, `E`, `SE`, `S`, `SW`, `W`, and `NW`.
+The verifier chooses a single canonical placement for every target: it scans
+possible starting cells in row-major order, then checks directions in exactly
+that order. This also makes one-letter words deterministic: their direction is
+`N`.
+
+The agent must return exactly one solution for every requested target word in
+input order. The deterministic verifier independently runs the same documented
+search and rejects missing, extra, reordered, or incorrect results.
 
 ## Layout
 
@@ -44,7 +49,7 @@ full Git directory traversal behavior are out of scope.
 ├── uv.lock
 ├── .gitignore
 ├── .env
-├── src/plugin/
+├── src/word_search_coordinate_solver/
 ├── tests/
 ├── ui/
 ├── product/
@@ -52,15 +57,16 @@ full Git directory traversal behavior are out of scope.
 ```
 
 `contract.py` declares the typed inputs and outputs used by the MCP server,
-agent, and deterministic verifier. The verifier independently evaluates the
-documented rule subset and checks every submitted decision, including its
-status, rule number, and matching pattern.
+agent, and deterministic verifier. `verifier/rules.py` independently searches
+the grid, while `verifier/task.py` checks each submitted location and produces
+precise diagnostics.
 
 ## Develop and run
 
 ```bash
 uv sync --extra dev
-uv run pytest
+uv run ruff check .
+uv run pytest -q
 ```
 
 To publish, push the plugin to a public GitHub repository and submit its URL

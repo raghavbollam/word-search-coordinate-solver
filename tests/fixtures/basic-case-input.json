@@ -1,12 +1,15 @@
 {
-    "gitignore_contents": "# Generated files\n*.log\ncache/\n!important.log\nbuild/output.log\n",
-    "candidate_paths": [
-        "app.log",
-        "important.log",
-        "cache/session.json",
-        "cache/nested/data.txt",
-        "build/output.log",
-        "build/readme.txt",
-        "notes.txt"
+    "grid": [
+        "CATSXXX",
+        "XXXXXXX",
+        "XXXXXXX",
+        "XXXDOGX",
+        "XXXXXXX"
+    ],
+    "target_words": [
+        "CAT",
+        "DOG",
+        "TAC",
+        "BEE"
     ]
 }

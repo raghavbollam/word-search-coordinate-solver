@@ -1,132 +1,85 @@
 import json
 from pathlib import Path
 
-from contract import DecisionStatus
-from verifier.rules import evaluate_paths, parse_rules
+import pytest
 
+from contract import Direction
+from verifier.rules import find_word, solve_word_search
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def test_parse_rules_ignores_comments_and_blank_lines() -> None:
-    rules = parse_rules(
-        "# Generated files\n"
-        "\n"
-        "*.log\n"
-        "cache/\n"
-        "!important.log\n"
-    )
+@pytest.mark.parametrize(
+    ("direction", "row_step", "column_step"),
+    [
+        (Direction.NORTH, -1, 0),
+        (Direction.NORTHEAST, -1, 1),
+        (Direction.EAST, 0, 1),
+        (Direction.SOUTHEAST, 1, 1),
+        (Direction.SOUTH, 1, 0),
+        (Direction.SOUTHWEST, 1, -1),
+        (Direction.WEST, 0, -1),
+        (Direction.NORTHWEST, -1, -1),
+    ],
+)
+def test_find_word_supports_every_direction(
+    direction: Direction,
+    row_step: int,
+    column_step: int,
+) -> None:
+    cells = [["X"] * 5 for _ in range(5)]
+    cells[2][2] = "A"
+    cells[2 + row_step][2 + column_step] = "B"
+    grid = ["".join(row) for row in cells]
 
-    assert [
-        (rule.number, rule.pattern, rule.is_negation)
-        for rule in rules
-    ] == [
-        (1, "*.log", False),
-        (2, "cache/", False),
-        (3, "!important.log", True),
-    ]
+    solution = find_word(grid, "AB")
 
-
-def test_evaluate_paths_uses_last_matching_rule() -> None:
-    decisions = evaluate_paths(
-        "*.log\n"
-        "!important.log\n"
-        "build/output.log\n",
-        [
-            "app.log",
-            "important.log",
-            "build/output.log",
-            "notes.txt",
-        ],
-    )
-
-    assert [
-        (
-            decision.path,
-            decision.status,
-            decision.winning_rule,
-            decision.winning_pattern,
-        )
-        for decision in decisions
-    ] == [
-        ("app.log", DecisionStatus.IGNORED, 1, "*.log"),
-        ("important.log", DecisionStatus.INCLUDED, 2, "!important.log"),
-        ("build/output.log", DecisionStatus.IGNORED, 3, "build/output.log"),
-        ("notes.txt", DecisionStatus.INCLUDED, None, None),
-    ]
+    assert solution.word == "AB"
+    assert solution.found is True
+    assert (solution.start_row, solution.start_column) == (3, 3)
+    assert (solution.end_row, solution.end_column) == (3 + row_step, 3 + column_step)
+    assert solution.direction is direction
 
 
-def test_wildcards_and_directory_rules_apply_to_nested_paths() -> None:
-    decisions = evaluate_paths(
-        "*.log\n"
-        "cache/\n",
-        [
-            "logs/app.log",
-            "cache/session.json",
-            "cache/nested/data.txt",
-            "src/main.py",
-        ],
-    )
+def test_find_word_uses_documented_direction_order_for_ties() -> None:
+    solution = find_word(["AB", "BX"], "AB")
 
-    assert [
-        (
-            decision.path,
-            decision.status,
-            decision.winning_rule,
-            decision.winning_pattern,
-        )
-        for decision in decisions
-    ] == [
-        ("logs/app.log", DecisionStatus.IGNORED, 1, "*.log"),
-        ("cache/session.json", DecisionStatus.IGNORED, 2, "cache/"),
-        ("cache/nested/data.txt", DecisionStatus.IGNORED, 2, "cache/"),
-        ("src/main.py", DecisionStatus.INCLUDED, None, None),
-    ]
+    assert (solution.start_row, solution.start_column) == (1, 1)
+    assert solution.direction is Direction.EAST
 
 
-def test_empty_gitignore_includes_with_null_metadata() -> None:
-    decisions = evaluate_paths("", ["notes.txt"])
+def test_find_word_uses_row_major_start_cells_for_ties() -> None:
+    solution = find_word(["XXX", "XAB", "ABX"], "AB")
 
-    assert [
-        (
-            decision.status,
-            decision.winning_rule,
-            decision.winning_pattern,
-        )
-        for decision in decisions
-    ] == [(DecisionStatus.INCLUDED, None, None)]
+    assert (solution.start_row, solution.start_column) == (2, 2)
+    assert (solution.end_row, solution.end_column) == (2, 3)
+    assert solution.direction is Direction.EAST
 
 
-def test_lone_negation_is_ignored_and_not_numbered() -> None:
-    rules = parse_rules("!\n*.log\n")
+def test_one_letter_word_uses_north_direction() -> None:
+    solution = find_word(["XQ"], "Q")
 
-    assert [
-        (rule.number, rule.pattern, rule.is_negation)
-        for rule in rules
-    ] == [(1, "*.log", False)]
+    assert solution.found is True
+    assert (solution.start_row, solution.start_column) == (1, 2)
+    assert (solution.end_row, solution.end_column) == (1, 2)
+    assert solution.direction is Direction.NORTH
 
 
-def test_later_ignore_rule_overrides_prior_negation() -> None:
-    decision = evaluate_paths("*.log\n!important.log\nimportant.log\n", ["important.log"])[0]
+def test_find_word_returns_documented_not_found_result() -> None:
+    solution = find_word(["ABC", "DEF"], "GHI")
 
+    assert solution.word == "GHI"
+    assert solution.found is False
     assert (
-        decision.status,
-        decision.winning_rule,
-        decision.winning_pattern,
-    ) == (DecisionStatus.IGNORED, 3, "important.log")
+        solution.start_row,
+        solution.start_column,
+        solution.end_row,
+        solution.end_column,
+        solution.direction,
+    ) == (None, None, None, None, None)
 
 
-def test_directory_rule_matches_exact_directory_candidate() -> None:
-    decision = evaluate_paths("cache/\n", ["cache"])[0]
-
-    assert (
-        decision.status,
-        decision.winning_rule,
-        decision.winning_pattern,
-    ) == (DecisionStatus.IGNORED, 1, "cache/")
-
-
-def test_basic_fixture_matches_expected_decisions() -> None:
+def test_basic_fixture_matches_expected_solutions() -> None:
     input_data = json.loads(
         (FIXTURES / "basic-case-input.json").read_text(encoding="utf-8")
     )
@@ -134,19 +87,21 @@ def test_basic_fixture_matches_expected_decisions() -> None:
         (FIXTURES / "basic-case-expected.json").read_text(encoding="utf-8")
     )
 
-    decisions = evaluate_paths(
-        input_data["gitignore_contents"],
-        input_data["candidate_paths"],
+    solutions = solve_word_search(
+        input_data["grid"],
+        input_data["target_words"],
     )
-
     actual = [
         {
-            "path": decision.path,
-            "status": decision.status.value,
-            "winning_rule": decision.winning_rule,
-            "winning_pattern": decision.winning_pattern,
+            "word": solution.word,
+            "found": solution.found,
+            "start_row": solution.start_row,
+            "start_column": solution.start_column,
+            "end_row": solution.end_row,
+            "end_column": solution.end_column,
+            "direction": solution.direction.value if solution.direction else None,
         }
-        for decision in decisions
+        for solution in solutions
     ]
 
-    assert actual == expected_data["decisions"]
+    assert actual == expected_data["solutions"]

@@ -1,4 +1,4 @@
-"""MCP server for the gitignore decision explainer."""
+"""MCP server for the word-search coordinate solver."""
 
 from __future__ import annotations
 
@@ -13,16 +13,15 @@ from mcp.server.stdio import stdio_server
 from slimconfig import build_output, output_schema, plain_output
 
 from contract import TOOLS, Tool
-from plugin import read_case, write_decisions
+from word_search_coordinate_solver import read_case, write_solutions
 
-
-server = Server("gitignore-decision-explainer")
+server = Server("word-search-coordinate-solver")
 
 WORKSPACE_ENV = "NANOAGENT_WORKSPACE"
 
 IMPLEMENTATIONS = {
     Tool.READ_CASE: read_case,
-    Tool.WRITE_DECISIONS: write_decisions,
+    Tool.WRITE_SOLUTIONS: write_solutions,
 }
 
 

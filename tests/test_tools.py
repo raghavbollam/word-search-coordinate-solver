@@ -2,36 +2,43 @@ import json
 from pathlib import Path
 
 from contract import (
-    DecisionStatus,
-    GitIgnoreDecisionInput,
-    GitIgnoreDecisionOutput,
-    PathDecision,
+    Direction,
     ReadCaseInput,
-    WriteDecisionsInput,
+    WordLocation,
+    WordSearchInput,
+    WordSearchOutput,
+    WriteSolutionsInput,
 )
-from plugin.tools import read_case, write_decisions
-
+from word_search_coordinate_solver.tools import read_case, write_solutions
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def load_basic_input() -> GitIgnoreDecisionInput:
+def load_basic_input() -> WordSearchInput:
     data = json.loads((FIXTURES / "basic-case-input.json").read_text(encoding="utf-8"))
-    return GitIgnoreDecisionInput(**data)
+    return WordSearchInput(**data)
 
 
-def load_basic_output() -> GitIgnoreDecisionOutput:
-    data = json.loads((FIXTURES / "basic-case-expected.json").read_text(encoding="utf-8"))
-
-    return GitIgnoreDecisionOutput(
-        decisions=[
-            PathDecision(
-                path=decision["path"],
-                status=DecisionStatus(decision["status"]),
-                winning_rule=decision["winning_rule"],
-                winning_pattern=decision["winning_pattern"],
+def load_basic_output() -> WordSearchOutput:
+    data = json.loads(
+        (FIXTURES / "basic-case-expected.json").read_text(encoding="utf-8")
+    )
+    return WordSearchOutput(
+        solutions=[
+            WordLocation(
+                word=solution["word"],
+                found=solution["found"],
+                start_row=solution["start_row"],
+                start_column=solution["start_column"],
+                end_row=solution["end_row"],
+                end_column=solution["end_column"],
+                direction=(
+                    Direction(solution["direction"])
+                    if solution["direction"] is not None
+                    else None
+                ),
             )
-            for decision in data["decisions"]
+            for solution in data["solutions"]
         ]
     )
 
@@ -44,70 +51,26 @@ def test_read_case_returns_task_input(tmp_path: Path) -> None:
         tmp_path,
     )
 
-    assert result.gitignore_contents == task.gitignore_contents
-    assert result.candidate_paths == task.candidate_paths
+    assert result.grid == task.grid
+    assert result.target_words == task.target_words
 
 
-def test_write_decisions_saves_json_report(tmp_path: Path) -> None:
+def test_write_solutions_saves_json_report(tmp_path: Path) -> None:
     task = load_basic_input()
     expected = load_basic_output()
 
-    result = write_decisions(
-        WriteDecisionsInput(
+    result = write_solutions(
+        WriteSolutionsInput(
             task=task,
-            decisions=expected.decisions,
+            solutions=expected.solutions,
         ),
         tmp_path,
     )
 
-    assert result.report_path == "decisions.json"
+    assert result.report_path == "solutions.json"
     assert result.report == expected
 
-    saved_report = json.loads((tmp_path / "decisions.json").read_text(encoding="utf-8"))
-
-    assert saved_report == {
-        "decisions": [
-            {
-                "path": "app.log",
-                "status": "ignored",
-                "winning_rule": 1,
-                "winning_pattern": "*.log",
-            },
-            {
-                "path": "important.log",
-                "status": "included",
-                "winning_rule": 3,
-                "winning_pattern": "!important.log",
-            },
-            {
-                "path": "cache/session.json",
-                "status": "ignored",
-                "winning_rule": 2,
-                "winning_pattern": "cache/",
-            },
-            {
-                "path": "cache/nested/data.txt",
-                "status": "ignored",
-                "winning_rule": 2,
-                "winning_pattern": "cache/",
-            },
-            {
-                "path": "build/output.log",
-                "status": "ignored",
-                "winning_rule": 4,
-                "winning_pattern": "build/output.log",
-            },
-            {
-                "path": "build/readme.txt",
-                "status": "included",
-                "winning_rule": None,
-                "winning_pattern": None,
-            },
-            {
-                "path": "notes.txt",
-                "status": "included",
-                "winning_rule": None,
-                "winning_pattern": None,
-            },
-        ]
-    }
+    saved_report = json.loads((tmp_path / "solutions.json").read_text(encoding="utf-8"))
+    assert saved_report == json.loads(
+        (FIXTURES / "basic-case-expected.json").read_text(encoding="utf-8")
+    )

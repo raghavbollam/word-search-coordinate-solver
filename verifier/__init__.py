@@ -1,8 +1,8 @@
-"""Deterministic verifier entry points for the gitignore decision explainer."""
+"""Deterministic verifier entry points for the word-search coordinate solver."""
 
-from contract import GitIgnoreDecisionOutput, ReadCaseOutput, Task, Tool
+from contract import ReadCaseOutput, Task, Tool, WordSearchOutput
 
-from .task import verify_task as verify_explain_decisions
+from .task import verify_task as verify_solve_word_search
 
 
 def result(valid, message, *, score=None, **details):
@@ -22,9 +22,9 @@ def verify_input(tool, value):
     if Tool(tool) is Tool.READ_CASE:
         return result(True, "The task input is valid.")
 
-    verdict = verify_explain_decisions(
+    verdict = verify_solve_word_search(
         value.task,
-        GitIgnoreDecisionOutput(decisions=value.decisions),
+        WordSearchOutput(solutions=value.solutions),
         None,
         None,
     )
@@ -43,8 +43,8 @@ def verify_output(tool, input_value, output_value, workspace):
 
     if Tool(tool) is Tool.READ_CASE:
         expected = ReadCaseOutput(
-            gitignore_contents=input_value.task.gitignore_contents,
-            candidate_paths=input_value.task.candidate_paths,
+            grid=input_value.task.grid,
+            target_words=input_value.task.target_words,
         )
         return result(
             output_value == expected,
@@ -53,24 +53,21 @@ def verify_output(tool, input_value, output_value, workspace):
             else "The case output did not match the task input.",
         )
 
-    expected = GitIgnoreDecisionOutput(decisions=input_value.decisions)
-    valid = (
-        output_value.report_path == "decisions.json"
-        and output_value.report == expected
-    )
+    expected = WordSearchOutput(solutions=input_value.solutions)
+    valid = output_value.report_path == "solutions.json" and output_value.report == expected
     return result(
         valid,
-        "The decisions were written correctly."
+        "The solutions were written correctly."
         if valid
-        else "The decision report did not match the submitted decisions.",
+        else "The solution report did not match the submitted solutions.",
     )
 
 
 def verify_task(task, arguments, output, reference, workspace):
-    """Verify final task output against the independently evaluated decisions."""
+    """Verify final task output against the independently solved answer."""
 
     del reference, workspace
-    verdict = verify_explain_decisions(arguments, output, None, None)
+    verdict = verify_solve_word_search(arguments, output, None, None)
     return result(
         verdict.ok,
         verdict.message,

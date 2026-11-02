@@ -1,13 +1,13 @@
 _ > nanoagent.plugin.v0001.ManifestConfig:
-id: gitignore-decision-explainer
-name: Gitignore Decision Explainer
+id: word-search-coordinate-solver
+name: Word Search Coordinate Solver
 version: 0.1.0
 status: ready
 spec: nanoagent.plugin/v0001
 
 runtime > nanoagent.plugin.v0001.RuntimeConfig:
   type: mcp_stdio
-  command: [uv, run, --frozen, python, -m, plugin]
+  command: [uv, run, --frozen, python, -m, word_search_coordinate_solver]
 
 permissions > nanoagent.plugin.v0001.PermissionsConfig:
   network > nanoagent.plugin.v0001.NetworkConfig:
@@ -17,35 +17,30 @@ permissions > nanoagent.plugin.v0001.PermissionsConfig:
 
 tools > dict[contract.Tool, nanoagent.plugin.v0001.ToolConfig]:
   read_case:
-    description: Read the .gitignore contents and candidate paths for the current task.
-  write_decisions:
-    description: Save the final structured ignore decisions for all candidate paths.
+    description: Read the word-search grid and target words for the current task.
+  write_solutions:
+    description: Save the final structured locations for every target word.
 
 tasks > dict[contract.Task, nanoagent.plugin.v0001.TaskConfig]:
-  explain-decisions:
-    description: Determine whether each candidate path is ignored or included by a documented subset of .gitignore rules, and report the final rule that decided it.
+  solve-word-search:
+    description: Find every target word in a supplied character grid and report canonical coordinates, direction, or a not-found result.
     runner: agent
-    tools: [read_case, write_decisions]
+    tools: [read_case, write_solutions]
     reference: null
     instructions: |-
-      Evaluate every candidate path using the supplied repository-root .gitignore
-      contents. Candidate paths are repository-relative.
+      First call read_case. The grid is a rectangular list of character rows,
+      and matching is exact and case-sensitive.
 
-      Supported rules: exact file/path patterns such as notes.txt or build/output.log;
-      * wildcards such as *.log; directory patterns ending in / such as cache/
-      (which also match the exact candidate cache);
-      and negation patterns beginning with ! such as !important.log. Ignore blank
-      lines, lines beginning with #, and a lone !.
+      For each target word, find a contiguous straight-line occurrence in one
+      of these directions: N, NE, E, SE, S, SW, W, NW. Coordinates are
+      one-based (row, column), and the direction runs from the first target
+      letter to its final letter.
 
-      Number only supported patterns, starting at 1. Comments and blank lines do
-      not receive rule numbers. Process patterns from top to bottom. For each
-      candidate path, the last matching pattern wins. A normal matching pattern
-      means ignored. A matching ! pattern means included.
+      When a word has multiple occurrences, report the canonical one: scan
+      possible start cells in row-major order, then test directions in this
+      exact order: N, NE, E, SE, S, SW, W, NW. A one-letter word therefore
+      uses direction N. Return exactly one solution per requested target word
+      in input order. For a target that is absent, set found to false and all
+      coordinates and direction to null.
 
-      Return exactly one decision for every candidate path in the input order.
-      Each decision must include the original path, its status, the winning
-      pattern-only rule number, and the exact winning pattern. When no supported
-      pattern matches, report included with null winning_rule and null
-      winning_pattern. This also applies when .gitignore is empty.
-
-      First call read_case. Then call write_decisions with the complete result.
+      Then call write_solutions with the complete result.

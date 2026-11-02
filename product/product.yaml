@@ -1,15 +1,15 @@
 _ > nanoagent.plugin.v0001.ProductConfig:
-tagline: "Explain which simplified .gitignore rule determines every file's final status"
+tagline: "Find canonical coordinates for every word in a supplied word-search grid"
 
-summary: "Given root .gitignore contents and a list of repository-relative paths, the agent determines whether each path is ignored or included. It identifies the final matching pattern under a documented subset of .gitignore behavior: exact paths, * wildcards, directory patterns, and ! negation. A deterministic verifier independently applies the same documented rules and checks every submitted path, status, rule number, and winning pattern."
+summary: "Given a rectangular character grid and ordered target words, the agent finds each word in a straight line and reports its 1-based start/end coordinates and direction. When a word occurs more than once, it uses documented row-major and direction-order tie-breaking. A deterministic verifier independently searches the grid and checks every submitted solution."
 
 highlights:
-  - "Offline and reproducible: every task uses supplied .gitignore text and candidate paths"
-  - "Supports exact paths, * wildcards, directory patterns ending in /, and ! negation"
-  - "Explains every decision with the final matching pattern and its pattern-only rule number"
+  - "Offline and reproducible: every task supplies the complete grid and target words"
+  - "Searches all eight compass directions with exact, case-sensitive character matching"
+  - "Reports 1-based start and end coordinates, direction, or an explicit not-found result"
   - "Deterministic all-or-nothing verification with precise mismatch diagnostics"
 
 steps:
-  - "Provide .gitignore contents and one or more normalized repository-relative candidate paths"
-  - "The agent evaluates patterns from top to bottom; the last matching supported rule wins"
-  - "Review the ignored or included status, rule number, and winning pattern for every path"
+  - "Provide a rectangular character grid and one or more target words"
+  - "The agent scans start cells row by row and directions in the documented fixed order"
+  - "Review the canonical location for each word or its documented not-found result"
