@@ -8,8 +8,8 @@ from contract import (
     Tool,
     WordSearchOutput,
 )
-from word_search_validation import validate_word_search_input
 
+from .rules import validate_word_search_input
 from .task import verify_task as verify_solve_word_search
 
 
