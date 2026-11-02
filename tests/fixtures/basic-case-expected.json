@@ -1,0 +1,46 @@
+{
+    "decisions": [
+        {
+            "path": "app.log",
+            "status": "ignored",
+            "winning_rule": 1,
+            "winning_pattern": "*.log"
+        },
+        {
+            "path": "important.log",
+            "status": "included",
+            "winning_rule": 3,
+            "winning_pattern": "!important.log"
+        },
+        {
+            "path": "cache/session.json",
+            "status": "ignored",
+            "winning_rule": 2,
+            "winning_pattern": "cache/"
+        },
+        {
+            "path": "cache/nested/data.txt",
+            "status": "ignored",
+            "winning_rule": 2,
+            "winning_pattern": "cache/"
+        },
+        {
+            "path": "build/output.log",
+            "status": "ignored",
+            "winning_rule": 4,
+            "winning_pattern": "build/output.log"
+        },
+        {
+            "path": "build/readme.txt",
+            "status": "included",
+            "winning_rule": null,
+            "winning_pattern": null
+        },
+        {
+            "path": "notes.txt",
+            "status": "included",
+            "winning_rule": null,
+            "winning_pattern": null
+        }
+    ]
+}

@@ -1,0 +1,51 @@
+_ > nanoagent.plugin.v0001.ManifestConfig:
+id: gitignore-decision-explainer
+name: Gitignore Decision Explainer
+version: 0.1.0
+status: ready
+spec: nanoagent.plugin/v0001
+
+runtime > nanoagent.plugin.v0001.RuntimeConfig:
+  type: mcp_stdio
+  command: [uv, run, --frozen, python, -m, plugin]
+
+permissions > nanoagent.plugin.v0001.PermissionsConfig:
+  network > nanoagent.plugin.v0001.NetworkConfig:
+    hosts: []
+  filesystem > nanoagent.plugin.v0001.FilesystemConfig:
+    write: [workspace]
+
+tools > dict[contract.Tool, nanoagent.plugin.v0001.ToolConfig]:
+  read_case:
+    description: Read the .gitignore contents and candidate paths for the current task.
+  write_decisions:
+    description: Save the final structured ignore decisions for all candidate paths.
+
+tasks > dict[contract.Task, nanoagent.plugin.v0001.TaskConfig]:
+  explain-decisions:
+    description: Determine whether each candidate path is ignored or included by a documented subset of .gitignore rules, and report the final rule that decided it.
+    runner: agent
+    tools: [read_case, write_decisions]
+    reference: null
+    instructions: |-
+      Evaluate every candidate path using the supplied repository-root .gitignore
+      contents. Candidate paths are repository-relative.
+
+      Supported rules: exact file/path patterns such as notes.txt or build/output.log;
+      * wildcards such as *.log; directory patterns ending in / such as cache/
+      (which also match the exact candidate cache);
+      and negation patterns beginning with ! such as !important.log. Ignore blank
+      lines, lines beginning with #, and a lone !.
+
+      Number only supported patterns, starting at 1. Comments and blank lines do
+      not receive rule numbers. Process patterns from top to bottom. For each
+      candidate path, the last matching pattern wins. A normal matching pattern
+      means ignored. A matching ! pattern means included.
+
+      Return exactly one decision for every candidate path in the input order.
+      Each decision must include the original path, its status, the winning
+      pattern-only rule number, and the exact winning pattern. When no supported
+      pattern matches, report included with null winning_rule and null
+      winning_pattern. This also applies when .gitignore is empty.
+
+      First call read_case. Then call write_decisions with the complete result.
