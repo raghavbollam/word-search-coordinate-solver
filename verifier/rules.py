@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from contract import Direction, WordLocation
+from contract import Direction, WordLocation, WordSearchInput, validate_word_search_input
 
 DIRECTION_STEPS: tuple[tuple[Direction, int, int], ...] = (
     (Direction.NORTH, -1, 0),
@@ -43,6 +43,13 @@ def matches_word(
 def find_word(grid: list[str], word: str) -> WordLocation:
     """Find a word using row-major start cells and the fixed direction order."""
 
+    validate_word_search_input(WordSearchInput(grid=grid, target_words=[word]))
+    return _find_word(grid, word)
+
+
+def _find_word(grid: list[str], word: str) -> WordLocation:
+    """Find a word whose grid and target word have already been validated."""
+
     for row_index, row in enumerate(grid):
         for column_index, letter in enumerate(row):
             if letter != word[0]:
@@ -76,4 +83,5 @@ def find_word(grid: list[str], word: str) -> WordLocation:
 def solve_word_search(grid: list[str], target_words: list[str]) -> list[WordLocation]:
     """Return the canonical solution for every target word in input order."""
 
-    return [find_word(grid, word) for word in target_words]
+    validate_word_search_input(WordSearchInput(grid=grid, target_words=target_words))
+    return [_find_word(grid, word) for word in target_words]

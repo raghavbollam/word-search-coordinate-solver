@@ -41,7 +41,16 @@ def verify_task(
 
     del reference, workspace
 
-    expected = solve_word_search(arguments.grid, arguments.target_words)
+    try:
+        expected = solve_word_search(arguments.grid, arguments.target_words)
+    except ValueError as error:
+        return VerificationResult(
+            ok=False,
+            score=0.0,
+            message="The task input is invalid.",
+            errors=[str(error)],
+        )
+
     errors: list[str] = []
 
     if len(output.solutions) != len(expected):

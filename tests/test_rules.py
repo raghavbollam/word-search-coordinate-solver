@@ -79,6 +79,24 @@ def test_find_word_returns_documented_not_found_result() -> None:
     ) == (None, None, None, None, None)
 
 
+@pytest.mark.parametrize(
+    ("grid", "target_words", "message"),
+    [
+        ([], ["A"], "grid must contain at least one row"),
+        (["AB", "C"], ["A"], "grid rows must all have the same length"),
+        (["AB"], [], "target_words must contain at least one word"),
+        (["AB"], [""], "every target word must be a non-empty string"),
+    ],
+)
+def test_solve_word_search_rejects_malformed_input(
+    grid: list[str],
+    target_words: list[str],
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        solve_word_search(grid, target_words)
+
+
 def test_basic_fixture_matches_expected_solutions() -> None:
     input_data = json.loads(
         (FIXTURES / "basic-case-input.json").read_text(encoding="utf-8")

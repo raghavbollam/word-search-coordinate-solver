@@ -4,10 +4,15 @@ from pathlib import Path
 from contract import (
     Direction,
     Task,
+    Tool,
     WordLocation,
     WordSearchInput,
     WordSearchOutput,
+    WriteSolutionsInput,
+    WriteSolutionsOutput,
 )
+from plugin.tools import write_solutions
+from verifier import verify_input, verify_output
 from verifier import verify_task as verify_registered_task
 from verifier.task import verify_task
 
@@ -139,3 +144,63 @@ def test_registered_verifier_dispatches_to_task_verifier(tmp_path: Path) -> None
 
     assert result["valid"] is True
     assert result["score"] == 1.0
+
+
+def test_verifier_rejects_invalid_task_input(tmp_path: Path) -> None:
+    result = verify_task(
+        WordSearchInput(grid=["AB", "C"], target_words=["A"]),
+        WordSearchOutput(solutions=[]),
+        reference=None,
+        workspace=tmp_path,
+    )
+
+    assert result.ok is False
+    assert result.score == 0.0
+    assert result.errors == ["grid rows must all have the same length."]
+
+
+def test_read_case_input_verifier_rejects_invalid_task() -> None:
+    result = verify_input(
+        Tool.READ_CASE.value,
+        type(
+            "ReadCaseValue",
+            (),
+            {"task": WordSearchInput(grid=[], target_words=["A"])},
+        )(),
+    )
+
+    assert result["valid"] is False
+    assert result["details"]["errors"] == ["grid must contain at least one row."]
+
+
+def test_write_solutions_output_verifier_requires_persisted_report(tmp_path: Path) -> None:
+    task = load_basic_input()
+    expected = load_basic_output()
+    input_value = WriteSolutionsInput(task=task, solutions=expected.solutions)
+    output_value = WriteSolutionsOutput(report_path="solutions.json", report=expected)
+
+    result = verify_output(
+        Tool.WRITE_SOLUTIONS.value,
+        input_value,
+        output_value,
+        tmp_path,
+    )
+
+    assert result["valid"] is False
+    assert result["details"]["errors"] == ["solutions.json is missing."]
+
+
+def test_write_solutions_output_verifier_accepts_persisted_report(tmp_path: Path) -> None:
+    task = load_basic_input()
+    expected = load_basic_output()
+    input_value = WriteSolutionsInput(task=task, solutions=expected.solutions)
+    output_value = write_solutions(input_value, tmp_path)
+
+    result = verify_output(
+        Tool.WRITE_SOLUTIONS.value,
+        input_value,
+        output_value,
+        tmp_path,
+    )
+
+    assert result["valid"] is True

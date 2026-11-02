@@ -21,6 +21,9 @@ their canonical coordinates and direction, or an explicit not-found result.
 
 The task input contains a non-empty rectangular `grid` of character strings
 and ordered, non-empty `target_words`. Matching is exact and case-sensitive.
+Invalid inputs, including empty or ragged grids and empty target words, are
+rejected with explicit validation errors. The verifier also checks that
+`write_solutions` actually writes the expected `solutions.json` report.
 Each output `solution` contains the target `word`, a `found` flag, and:
 
 - when found: 1-based `start_row`, `start_column`, `end_row`, `end_column`,

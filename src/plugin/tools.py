@@ -13,11 +13,14 @@ from contract import (
     WordSearchOutput,
     WriteSolutionsInput,
     WriteSolutionsOutput,
+    validate_word_search_input,
 )
 
 
 def read_case(given: ReadCaseInput, workspace: Path) -> ReadCaseOutput:
     """Return the task input unchanged."""
+
+    validate_word_search_input(given.task)
 
     return ReadCaseOutput(
         grid=given.task.grid,
@@ -28,6 +31,7 @@ def read_case(given: ReadCaseInput, workspace: Path) -> ReadCaseOutput:
 def write_solutions(given: WriteSolutionsInput, workspace: Path) -> WriteSolutionsOutput:
     """Write the agent's final structured answer into its permitted workspace."""
 
+    validate_word_search_input(given.task)
     report = WordSearchOutput(solutions=given.solutions)
     report_path = workspace / "solutions.json"
     report_path.write_text(

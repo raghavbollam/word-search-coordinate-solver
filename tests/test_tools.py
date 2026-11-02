@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from contract import (
     Direction,
     ReadCaseInput,
@@ -74,3 +76,13 @@ def test_write_solutions_saves_json_report(tmp_path: Path) -> None:
     assert saved_report == json.loads(
         (FIXTURES / "basic-case-expected.json").read_text(encoding="utf-8")
     )
+
+
+def test_read_case_rejects_an_invalid_task(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="grid rows must all have the same length"):
+        read_case(
+            ReadCaseInput(
+                task=WordSearchInput(grid=["AB", "C"], target_words=["A"]),
+            ),
+            tmp_path,
+        )
