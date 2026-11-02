@@ -1,6 +1,7 @@
 """Deterministic verifier entry points for the word-search coordinate solver."""
 
 import json
+from pathlib import Path
 
 from contract import (
     ReadCaseOutput,
@@ -84,7 +85,7 @@ def verify_output(tool, input_value, output_value, workspace):
 
     expected = WordSearchOutput(solutions=input_value.solutions)
     expected_report = serialize_report(expected)
-    report_file = workspace / "solutions.json"
+    report_file = Path(workspace) / "solutions.json"
 
     try:
         written_report = json.loads(report_file.read_text(encoding="utf-8"))

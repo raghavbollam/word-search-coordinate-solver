@@ -204,3 +204,19 @@ def test_write_solutions_output_verifier_accepts_persisted_report(tmp_path: Path
     )
 
     assert result["valid"] is True
+
+
+def test_write_solutions_output_verifier_accepts_string_workspace(tmp_path: Path) -> None:
+    task = load_basic_input()
+    expected = load_basic_output()
+    input_value = WriteSolutionsInput(task=task, solutions=expected.solutions)
+    output_value = write_solutions(input_value, tmp_path)
+
+    result = verify_output(
+        Tool.WRITE_SOLUTIONS.value,
+        input_value,
+        output_value,
+        str(tmp_path),
+    )
+
+    assert result["valid"] is True
