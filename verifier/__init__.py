@@ -2,15 +2,13 @@
 
 import json
 
-from slimconfig import plain_output
-
 from contract import (
     ReadCaseOutput,
     Task,
     Tool,
     WordSearchOutput,
-    validate_word_search_input,
 )
+from word_search_validation import validate_word_search_input
 
 from .task import verify_task as verify_solve_word_search
 
@@ -23,6 +21,25 @@ def result(valid, message, *, score=None, **details):
         "score": float(valid) if score is None else score,
         "message": message,
         "details": details,
+    }
+
+
+def serialize_report(report: WordSearchOutput) -> dict[str, list[dict[str, object]]]:
+    """Convert the expected report to the JSON representation written by the tool."""
+
+    return {
+        "solutions": [
+            {
+                "word": solution.word,
+                "found": solution.found,
+                "start_row": solution.start_row,
+                "start_column": solution.start_column,
+                "end_row": solution.end_row,
+                "end_column": solution.end_column,
+                "direction": solution.direction.value if solution.direction else None,
+            }
+            for solution in report.solutions
+        ]
     }
 
 
@@ -66,7 +83,7 @@ def verify_output(tool, input_value, output_value, workspace):
         )
 
     expected = WordSearchOutput(solutions=input_value.solutions)
-    expected_report = plain_output(expected)
+    expected_report = serialize_report(expected)
     report_file = workspace / "solutions.json"
 
     try:

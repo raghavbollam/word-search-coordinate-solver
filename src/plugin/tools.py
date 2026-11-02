@@ -13,8 +13,8 @@ from contract import (
     WordSearchOutput,
     WriteSolutionsInput,
     WriteSolutionsOutput,
-    validate_word_search_input,
 )
+from word_search_validation import validate_word_search_input
 
 
 def read_case(given: ReadCaseInput, workspace: Path) -> ReadCaseOutput:

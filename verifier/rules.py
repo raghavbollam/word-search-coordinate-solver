@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from contract import Direction, WordLocation, WordSearchInput, validate_word_search_input
+from contract import Direction, WordLocation, WordSearchInput
+from word_search_validation import validate_word_search_input
 
 DIRECTION_STEPS: tuple[tuple[Direction, int, int], ...] = (
     (Direction.NORTH, -1, 0),
